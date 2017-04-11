@@ -18,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/hwshim0810/nodejs-urlshortener/issues"
   },
-  "homepage": "https://github.com/hwshim0810/nodejs-urlshortener#readme"
+  "homepage": "https://github.com/hwshim0810/nodejs-urlshortener#readme",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "morgan": "^1.8.1",
+    "node-mysql": "^0.4.2"
+  }
 }
