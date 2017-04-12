@@ -99,6 +99,7 @@ module.exports = function(app, pool)
     }
   });
 
+  // [User Case 3 : accesses stats URL]
   app.get('/:id/stats', function(req, res) {
 
     var param = [req.params.id];
