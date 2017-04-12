@@ -1,17 +1,18 @@
-module.exports = function(app)
+module.exports = function(app, conn)
 {
-  var mysql      = require('mysql');
-  var db_config  = require('../config/db-config.json');
+  conn.connect();
 
-  // [Configure Database]
-  var conn = mysql.createConnection({
-    host     : db_config.host,
-    user     : db_config.user,
-    password : db_config.password,
-    database : db_config.database
+  app.post('/resister.json', function(req, res) {
+
   });
 
-  conn.connect();
+  app.get('/:id', function() {
+
+  });
+
+  app.get('/:id/stats', function(req, res) {
+
+  });
 
   conn.end();
 }
