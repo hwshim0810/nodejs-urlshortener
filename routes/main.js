@@ -42,11 +42,35 @@ module.exports = function(app, conn)
         }
       });
     }
-
+    
   });
 
-  app.get('/:id', function() {
+  app.get('/:id', function(req, res) {
+    var sql_sel = "SELECT long_url FROM urls_tb WHERE id=?";
+    var sql_upt = "UPDATE urls_tb SET visits_cnt = visits_cnt+1 WHERE id=?"
+    var param = [req.params.id];
 
+    if (!isDigit(req.params.id)) {
+      res.status(400).json({reason: "Wrong Id"});
+    } else {
+      conn.query(sql_sel, param, function(err, rows) {
+        if (err) {
+          console.log(err);
+        } else {
+          if (rows.length > 0) {
+            res.redirect(301, rows[0].long_url);
+
+            conn.query(sql_upt, param, function(err) {
+              if (err) {
+                console.log(err);
+              }
+            });
+          } else {
+            res.status(400).json({reason: "Wrong Id"});
+          }
+        }
+      });
+    }
   });
 
   app.get('/:id/stats', function(req, res) {
@@ -57,14 +81,18 @@ module.exports = function(app, conn)
       res.status(400).json({reason: "Wrong Id"});
     } else {
       conn.query(sql_sel, param, function(err, rows) {
-        if (rows.length > 0) {
-          res.status(200).json({visits: rows[0].visits_cnt});
+        if (err) {
+          console.log(err);
         } else {
-          res.status(400).json({reason: "Wrong Id"});
+          if (rows.length > 0) {
+            res.status(200).json({visits: rows[0].visits_cnt});
+          } else {
+            res.status(400).json({reason: "Wrong Id"});
+          }
         }
       });
     }
   });
 
-  // conn.end();
+
 }
