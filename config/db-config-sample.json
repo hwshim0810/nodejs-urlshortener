@@ -2,5 +2,6 @@
   "host": "hostname",
   "user": "user name",
   "password": "password",
-  "database": "database name"
+  "database": "database name",
+  "port": "portnum"
 }

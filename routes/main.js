@@ -1,7 +1,7 @@
-module.exports = function(app, conn)
+module.exports = function(app, pool)
 {
-  conn.connect();
 
+  
   var context = "http://localhost:3000/";
 
   function isURL(query) {
@@ -20,76 +20,92 @@ module.exports = function(app, conn)
     if (long_url == undefined || !isURL(long_url)) {
       res.status(400).json({reason: "Not enough URL"});
     } else {
-      var sql_sel = "SELECT id FROM urls_tb WHERE long_url=?";
-      var sql_ins = "INSERT INTO urls_tb (long_url) VALUES (?)";
+
       var param = [long_url];
 
-      conn.query(sql_sel, param, function(err, rows) {
-        if (err) {
-          console.log(err);
-        } else {
-          if (rows.length > 0) {
-            res.status(200).json({url: context + rows[0].id});
-          } else {
-            conn.query(sql_ins, param, function(err, rows) {
-              if (err) {
-                console.log(err);
-              } else {
-                res.status(201).json({url: context + rows.insertId});
-              }
-            });
+      pool.getConnection(function(err, conn) {
+        conn.query("SELECT id FROM urls_tb WHERE long_url=?", param, function(err, rows) {
+          if (err) {
+            console.err(err);
+            conn.release();
+            throw err;
           }
-        }
+
+            if (rows.length > 0) {
+              res.status(200).json({url: context + rows[0].id});
+            } else {
+              conn.query("INSERT INTO urls_tb (long_url) VALUES (?)", param, function(err, rows) {
+                if (err) {
+                  console.err(err);
+                  conn.release();
+                  throw err;
+                }
+                res.status(201).json({url: context + rows.insertId});
+
+              });
+            }
+            conn.release();
+        });
       });
     }
-    
+
   });
 
   app.get('/:id', function(req, res) {
-    var sql_sel = "SELECT long_url FROM urls_tb WHERE id=?";
-    var sql_upt = "UPDATE urls_tb SET visits_cnt = visits_cnt+1 WHERE id=?"
+
     var param = [req.params.id];
 
     if (!isDigit(req.params.id)) {
       res.status(400).json({reason: "Wrong Id"});
     } else {
-      conn.query(sql_sel, param, function(err, rows) {
-        if (err) {
-          console.log(err);
-        } else {
+      pool.getConnection(function(err, conn) {
+        conn.query("SELECT long_url FROM urls_tb WHERE id=?", param, function(err, rows) {
+          if (err) {
+            console.err(err);
+            conn.release();
+            throw err;
+          }
+
           if (rows.length > 0) {
             res.redirect(301, rows[0].long_url);
 
-            conn.query(sql_upt, param, function(err) {
+            conn.query("UPDATE urls_tb SET visits_cnt = visits_cnt+1 WHERE id=?", param, function(err) {
               if (err) {
-                console.log(err);
+                console.err(err);
+                conn.release();
+                throw err;
               }
             });
           } else {
             res.status(400).json({reason: "Wrong Id"});
           }
-        }
+          conn.release();
+        });
       });
     }
   });
 
   app.get('/:id/stats', function(req, res) {
-    var sql_sel = "SELECT visits_cnt FROM urls_tb WHERE id=?";
+
     var param = [req.params.id];
 
     if (!isDigit(req.params.id)) {
       res.status(400).json({reason: "Wrong Id"});
     } else {
-      conn.query(sql_sel, param, function(err, rows) {
-        if (err) {
-          console.log(err);
-        } else {
+      pool.getConnection(function(err, conn) {
+        conn.query("SELECT visits_cnt FROM urls_tb WHERE id=?", param, function(err, rows) {
+          if (err) {
+            console.err(err);
+            conn.release();
+            throw err;
+          }
           if (rows.length > 0) {
             res.status(200).json({visits: rows[0].visits_cnt});
           } else {
             res.status(400).json({reason: "Wrong Id"});
           }
-        }
+          conn.release();
+        });
       });
     }
   });
