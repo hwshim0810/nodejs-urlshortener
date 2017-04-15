@@ -1,25 +1,14 @@
+var util = require('../util/validation');
+
 module.exports = function(app, pool)
 {
-
-
   var context = "http://localhost:3000/";
-
-  // [Util Method Define]
-  function isURL(query) {
-    var reg = new RegExp(/^(((http(s?))\:\/\/)?)([0-9a-zA-Z\-]+\.)+[a-zA-Z]{2,6}(\:[0-9]+)?(\/\S*)?$/);
-    return reg.test(query);
-  }
-
-  function isDigit(query) {
-    var reg = new RegExp(/^[0-9]*$/);
-    return reg.test(query);
-  }
-
+  
   // [User Case 1 : registers URL]
   app.post('/resister.json', function(req, res) {
     var long_url = req.query.url;
 
-    if (long_url == undefined || !isURL(long_url)) {
+    if (long_url == undefined || !util.isURL(long_url)) {
       // [Wrong URL]
       res.status(400).json({reason: "Not enough URL"});
     } else {
@@ -64,7 +53,7 @@ module.exports = function(app, pool)
 
     var param = [req.params.id];
 
-    if (!isDigit(req.params.id)) {
+    if (!util.isDigit(req.params.id)) {
       // [Wrong ID : not digit]
       res.status(400).json({reason: "Wrong Id"});
     } else {
@@ -104,7 +93,7 @@ module.exports = function(app, pool)
 
     var param = [req.params.id];
 
-    if (!isDigit(req.params.id)) {
+    if (!util.isDigit(req.params.id)) {
       // [Wrong ID : not digit]
       res.status(400).json({reason: "Wrong Id"});
     } else {
