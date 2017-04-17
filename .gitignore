@@ -6,4 +6,4 @@ jspm_packages/
 .npm
 
 # DB config
-config/db-config.json
+db/db-config.json
