@@ -20,9 +20,10 @@
   },
   "homepage": "https://github.com/hwshim0810/nodejs-urlshortener#readme",
   "dependencies": {
+    "bluebird": "^3.5.0",
     "body-parser": "^1.17.1",
     "express": "^4.15.2",
     "morgan": "^1.8.1",
-    "node-mysql": "^0.4.2"
+    "mysql": "^2.13.0"
   }
 }
