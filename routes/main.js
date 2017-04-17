@@ -7,7 +7,6 @@ module.exports = function(app, db, sql)
   // [User Case 1 : registers URL]
   app.post('/resister.json', function(req, res) {
     var long_url = req.query.url;
-    var param = [long_url];
 
     // [Validate URL]
     if (long_url == undefined || !util.isURL(long_url)) {
@@ -44,45 +43,41 @@ module.exports = function(app, db, sql)
 
 
   // [User Case 2 : accesses URL that retrieved from register response]
-  // app.get('/:id', function(req, res) {
-  //
-  //   var param = [req.params.id];
-  //
-  //   if (!util.isDigit(req.params.id)) {
-  //     // [Wrong ID : not digit]
-  //     res.status(400).json({reason: "Wrong Id"});
-  //   } else {
-  //     // [Connecting by Conection pool]
-  //     pool.getConnection(function(err, conn) {
-  //       conn.query("SELECT long_url FROM urls_tb WHERE id=?", param, function(err, rows) {
-  //         if (err) {
-  //           console.err(err);
-  //           conn.release();
-  //           throw err;
-  //         }
-  //
-  //         if (rows.length > 0) {
-  //           // [Redirecting Original URL]
-  //           res.redirect(301, rows[0].long_url);
-  //           // [Increases number of visit for the URL record]
-  //           conn.query("UPDATE urls_tb SET visits_cnt = visits_cnt+1 WHERE id=?", param, function(err) {
-  //             if (err) {
-  //               console.err(err);
-  //               conn.release();
-  //               throw err;
-  //             }
-  //           });
-  //         } else {
-  //           // [ID not exist]
-  //           res.status(400).json({reason: "Wrong Id"});
-  //         }
-  //         // [Connection Release]
-  //         conn.release();
-  //       });
-  //     });
-  //   }
-  // });
-  //
+  app.get('/:id', function(req, res) {
+    var id = req.params.id;
+
+    // [Wrong ID : not digit]
+    if (!util.isDigit(id)) {
+      return res.status(400).json({reason: "Wrong Id"});
+    }
+
+    // [Search URL]
+    var prom = sql.getURL(id)
+    .then(function (rows) {
+      // [Exist URL]
+      if (rows.length > 0) {
+        // [Redirecting Original URL]
+        res.redirect(301, rows[0].long_url);
+        // [Increases number of visit for the URL record]
+        prom.then(function (result) {
+          db.query(function (conn) {
+            return sql.updateVisit(conn, id);
+          })
+          .catch(function (err) {
+            res.status(500).json({msg: err.message});
+          });
+        });
+      } else {
+        // [ID not exist]
+        res.status(400).json({reason: "Wrong Id"});
+      }
+    })
+    .catch(function (err) {
+      res.status(500).json({msg: err.message});
+    });
+
+  });
+
   // // [User Case 3 : accesses stats URL]
   // app.get('/:id/stats', function(req, res) {
   //
