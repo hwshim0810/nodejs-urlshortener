@@ -78,36 +78,31 @@ module.exports = function(app, db, sql)
 
   });
 
-  // // [User Case 3 : accesses stats URL]
-  // app.get('/:id/stats', function(req, res) {
-  //
-  //   var param = [req.params.id];
-  //
-  //   if (!util.isDigit(req.params.id)) {
-  //     // [Wrong ID : not digit]
-  //     res.status(400).json({reason: "Wrong Id"});
-  //   } else {
-  //     // [Connecting by Conection pool]
-  //     pool.getConnection(function(err, conn) {
-  //       conn.query("SELECT visits_cnt FROM urls_tb WHERE id=?", param, function(err, rows) {
-  //         if (err) {
-  //           console.err(err);
-  //           conn.release();
-  //           throw err;
-  //         }
-  //         // [Return number of visit for the URL record]
-  //         if (rows.length > 0) {
-  //           res.status(200).json({visits: rows[0].visits_cnt});
-  //         } else {
-  //           // [ID not exist]
-  //           res.status(400).json({reason: "Wrong Id"});
-  //         }
-  //         // [Connection Release]
-  //         conn.release();
-  //       });
-  //     });
-  //   }
-  // });
 
+  // [User Case 3 : accesses stats URL]
+  app.get('/:id/stats', function(req, res) {
+    var id = req.params.id;
+
+    // [Wrong ID : not digit]
+    if (!util.isDigit(id)) {
+      return res.status(400).json({reason: "Wrong Id"});
+    }
+
+    // [Search Visits]
+    var prom = sql.getVisit(id)
+    .then(function (rows) {
+      if (rows.length > 0) {
+        // [Return number of visit for the URL record]
+        res.status(200).json({visits: rows[0].visits_cnt});
+      } else {
+        // [ID not exist]
+        res.status(400).json({reason: "Wrong Id"});
+      }
+    })
+    .catch(function (err) {
+      res.status(500).json({msg: err.message});
+    });
+
+  });
 
 }
